@@ -42,7 +42,7 @@ func Read() (Config, error) {
 	return config, nil
 }
 
-func SetUser(userName string) error {
+func (cfg *Config) SetUser(userName string) error {
 	confData, err := Read()
 	if err != nil {
 		return err
