@@ -2,44 +2,43 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/CTK-code/GatorCLI/internal/config"
 )
 
 func main() {
-	state := config.State{}
 	confData, err := config.Read()
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	} else {
-		fmt.Println(confData)
+		log.Fatal(err)
+		return
 	}
-	state.Config = &confData
-	commands := config.GetCommands()
-	err = commands.Run(&state, argsToCommand())
+	programState := &state{
+		Config: &confData,
+	}
+	commands := GetCommands()
+	err = commands.Run(programState, argsToCommand())
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Fatal(err)
+		return
 	}
 
 	confData, err = config.Read()
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	} else {
-		fmt.Println(confData)
+		log.Fatal(err)
+		return
 	}
+	fmt.Println(confData)
 }
 
-func argsToCommand() config.Command {
+func argsToCommand() Command {
 	if len(os.Args) < 2 {
-		return config.Command{}
+		return Command{}
 	}
 	// Ignore first arg which is the call to the program
 	args := os.Args[1:]
-	return config.Command{
+	return Command{
 		Name: args[0],
 		Args: args[1:],
 	}

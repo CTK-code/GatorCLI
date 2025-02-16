@@ -1,4 +1,4 @@
-package config
+package main
 
 import (
 	"errors"
@@ -11,19 +11,19 @@ type Command struct {
 }
 
 type Commands struct {
-	Commands map[string]func(s *State, cmd Command) error
+	Commands map[string]func(s *state, cmd Command) error
 }
 
 func GetCommands() Commands {
 	commands := Commands{
-		Commands: map[string]func(s *State, cmd Command) error{},
+		Commands: map[string]func(s *state, cmd Command) error{},
 	}
 
 	commands.register("login", handlerLogin)
 	return commands
 }
 
-func (c *Commands) register(name string, f func(s *State, cmd Command) error) error {
+func (c *Commands) register(name string, f func(s *state, cmd Command) error) error {
 	if _, ok := c.Commands[name]; ok {
 		return fmt.Errorf("command already registered for: %s", name)
 	}
@@ -31,7 +31,7 @@ func (c *Commands) register(name string, f func(s *State, cmd Command) error) er
 	return nil
 }
 
-func (c *Commands) Run(s *State, cmd Command) error {
+func (c *Commands) Run(s *state, cmd Command) error {
 	if fn, ok := c.Commands[cmd.Name]; ok {
 		if err := fn(s, cmd); err != nil {
 			return err
@@ -42,7 +42,7 @@ func (c *Commands) Run(s *State, cmd Command) error {
 	return nil
 }
 
-func handlerLogin(s *State, cmd Command) error {
+func handlerLogin(s *state, cmd Command) error {
 	if len(cmd.Args) == 0 {
 		return errors.New("login expects one argument username")
 	}
