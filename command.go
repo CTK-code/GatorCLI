@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 )
 
@@ -20,6 +19,7 @@ func GetCommands() Commands {
 	}
 
 	commands.register("login", handlerLogin)
+	commands.register("register", handlerRegister)
 	return commands
 }
 
@@ -39,16 +39,5 @@ func (c *Commands) Run(s *state, cmd Command) error {
 	} else {
 		return fmt.Errorf("no command named: %s", cmd.Name)
 	}
-	return nil
-}
-
-func handlerLogin(s *state, cmd Command) error {
-	if len(cmd.Args) == 0 {
-		return errors.New("login expects one argument username")
-	}
-	if err := s.Config.SetUser(cmd.Args[0]); err != nil {
-		return err
-	}
-	fmt.Printf("Username has been set to '%s'\n", cmd.Args[0])
 	return nil
 }
