@@ -99,7 +99,24 @@ func handlerAddFeed(s *state, cmd Command) error {
 	if err != nil {
 		return fmt.Errorf("error adding feed\n%s", err)
 	}
+
+	// Add to following
+	followArgs := database.CreateFeedFollowParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		FeedID:    feed.ID,
+		UserID:    user.ID,
+	}
+	follow, err := s.db.CreateFeedFollow(ctx, followArgs)
+	if err != nil {
+		return fmt.Errorf("error following:\n%s", err)
+	}
+
 	fmt.Printf("New feed added:\n%s", feed)
+	fmt.Printf("User: %s has followed %s\n",
+		follow.UserName,
+		follow.FeedName)
 	return nil
 }
 
@@ -113,6 +130,49 @@ func handlerGetFeeds(s *state, _ Command) error {
 		fmt.Printf("Feed Name: %s\n", feed.FeedName)
 		fmt.Printf("Feed URL: %s\n", feed.Url)
 		fmt.Printf("Added By: %s\n", feed.Username)
+	}
+	return nil
+}
+
+func handlerFollow(s *state, cmd Command) error {
+	if len(cmd.Args) < 1 {
+		return errors.New("no arguments provided")
+	}
+	ctx := context.Background()
+	user, err := s.db.GetUser(ctx, s.Config.CurrentUserName)
+	if err != nil {
+		return fmt.Errorf("error following - user may not exist?\n%s", err)
+	}
+	feed, err := s.db.GetFeedByUrl(ctx, cmd.Args[0])
+	if err != nil {
+		return fmt.Errorf("could not find feed:\n %s", err)
+	}
+	args := database.CreateFeedFollowParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		FeedID:    feed.ID,
+		UserID:    user.ID,
+	}
+	follow, err := s.db.CreateFeedFollow(ctx, args)
+	if err != nil {
+		return fmt.Errorf("error following:\n%s", err)
+	}
+	fmt.Printf("User: %s has followed %s\n",
+		follow.UserName,
+		follow.FeedName)
+	return nil
+}
+
+func handlerFollowing(s *state, _ Command) error {
+	ctx := context.Background()
+	feeds, err := s.db.GetFeedFollowsForUser(ctx, s.Config.CurrentUserName)
+	if err != nil {
+		return fmt.Errorf("error fetcing following:\n%s", err)
+	}
+	fmt.Printf("Feeds for user: %s\n", s.Config.CurrentUserName)
+	for _, feed := range feeds {
+		fmt.Printf("*  %s\n", feed.FeedName)
 	}
 	return nil
 }
