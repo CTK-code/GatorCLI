@@ -3,11 +3,15 @@ package main
 import (
 	"context"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"html"
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/CTK-code/GatorCLI/internal/database"
+	"github.com/google/uuid"
 )
 
 type RSSFeed struct {
@@ -72,4 +76,29 @@ func (feed *RSSFeed) unescape() {
 		feed.Channel.Item[i].Title = html.UnescapeString(feed.Channel.Item[i].Title)
 		feed.Channel.Item[i].Description = html.UnescapeString(feed.Channel.Item[i].Description)
 	}
+}
+
+func handlerAddFeed(s *state, cmd Command) error {
+	if len(cmd.Args) < 2 {
+		return errors.New("expected two arguments")
+	}
+	ctx := context.Background()
+	user, err := s.db.GetUser(ctx, s.Config.CurrentUserName)
+	if err != nil {
+		return fmt.Errorf("error adding feed - user may not exist?\n%s", err)
+	}
+	args := database.CreateFeedParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		Name:      cmd.Args[0],
+		Url:       cmd.Args[1],
+		UserID:    user.ID,
+	}
+	feed, err := s.db.CreateFeed(ctx, args)
+	if err != nil {
+		return fmt.Errorf("error adding feed\n%s", err)
+	}
+	fmt.Printf("New feed added:\n%s", feed)
+	return nil
 }
