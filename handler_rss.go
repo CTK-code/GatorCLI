@@ -78,15 +78,12 @@ func (feed *RSSFeed) unescape() {
 	}
 }
 
-func handlerAddFeed(s *state, cmd Command) error {
+func handlerAddFeed(s *state, cmd Command, user database.User) error {
 	if len(cmd.Args) < 2 {
 		return errors.New("expected two arguments")
 	}
+
 	ctx := context.Background()
-	user, err := s.db.GetUser(ctx, s.Config.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("error adding feed - user may not exist?\n%s", err)
-	}
 	args := database.CreateFeedParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now(),
@@ -134,15 +131,12 @@ func handlerGetFeeds(s *state, _ Command) error {
 	return nil
 }
 
-func handlerFollow(s *state, cmd Command) error {
+func handlerFollow(s *state, cmd Command, user database.User) error {
 	if len(cmd.Args) < 1 {
 		return errors.New("no arguments provided")
 	}
 	ctx := context.Background()
-	user, err := s.db.GetUser(ctx, s.Config.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("error following - user may not exist?\n%s", err)
-	}
+
 	feed, err := s.db.GetFeedByUrl(ctx, cmd.Args[0])
 	if err != nil {
 		return fmt.Errorf("could not find feed:\n %s", err)
