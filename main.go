@@ -44,7 +44,8 @@ func main() {
 		log.Fatal(err)
 		return
 	}
-	fmt.Println(confData)
+	fmt.Printf("DBURL: %s\n", confData.DBURL)
+	fmt.Printf("User: %s\n", confData.CurrentUserName)
 }
 
 func argsToCommand() Command {

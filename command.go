@@ -21,6 +21,7 @@ func GetCommands() Commands {
 	commands.register("login", handlerLogin)
 	commands.register("register", handlerRegister)
 	commands.register("reset", handlerReset)
+	commands.register("users", handlerListAll)
 	return commands
 }
 
