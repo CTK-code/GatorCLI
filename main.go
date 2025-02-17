@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"os"
 
@@ -44,8 +43,6 @@ func main() {
 		log.Fatal(err)
 		return
 	}
-	fmt.Printf("DBURL: %s\n", confData.DBURL)
-	fmt.Printf("User: %s\n", confData.CurrentUserName)
 }
 
 func argsToCommand() Command {
