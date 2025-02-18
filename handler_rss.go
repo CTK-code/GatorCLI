@@ -30,14 +30,20 @@ type RSSItem struct {
 	PubDate     string `xml:"pubDate"`
 }
 
-func handlerFetch(_ *state, cmd Command) error {
-	ctx := context.Background()
-	feed, err := fetchFeed(ctx, "https://www.wagslane.dev/index.xml")
+func handlerFetch(s *state, cmd Command) error {
+	if len(cmd.Args) < 1 {
+		return errors.New("expected one argument")
+	}
+	timeBetweenRequests, err := time.ParseDuration(cmd.Args[0])
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Feed returned by fetch:\n%v\n", feed)
-	return nil
+	fmt.Printf("Collecting feeds every %s\n\n", timeBetweenRequests)
+	fmt.Println("==========================================================================")
+	ticker := time.NewTicker(timeBetweenRequests)
+	for ; ; <-ticker.C {
+		scrapeFeeds(s)
+	}
 }
 
 func fetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
@@ -79,7 +85,9 @@ func (feed *RSSFeed) unescape() {
 }
 
 func handlerAddFeed(s *state, cmd Command, user database.User) error {
+	fmt.Println(cmd.Args)
 	if len(cmd.Args) < 2 {
+		fmt.Println("expected two arguments")
 		return errors.New("expected two arguments")
 	}
 
@@ -110,7 +118,7 @@ func handlerAddFeed(s *state, cmd Command, user database.User) error {
 		return fmt.Errorf("error following:\n%s", err)
 	}
 
-	fmt.Printf("New feed added:\n%s", feed)
+	fmt.Printf("New feed added:\n%v", feed)
 	fmt.Printf("User: %s has followed %s\n",
 		follow.UserName,
 		follow.FeedName)
