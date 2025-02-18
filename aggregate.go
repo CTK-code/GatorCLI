@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/CTK-code/GatorCLI/internal/database"
+	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 func scrapeFeeds(s *state) error {
@@ -36,6 +38,30 @@ func scrapeFeeds(s *state) error {
 		fmt.Printf("  Fetching %s From: %s", item.Title, item.Link)
 		fmt.Printf("  Published on %s", item.PubDate)
 		fmt.Println("  " + item.Description)
+		publishedAt, err := time.Parse("Mon, 2 Jan 2006 15:04:05 -0700", item.PubDate)
+		if err != nil {
+			return err
+		}
+		args := database.CreatePostParams{
+			ID:          uuid.New(),
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
+			Title:       item.Title,
+			Url:         item.Link,
+			Description: item.Description,
+			PublishedAt: publishedAt,
+			FeedID:      feed.ID,
+		}
+
+		p, err := s.db.CreatePost(ctx, args)
+		if err != nil {
+			if _, ok := err.(*pq.Error); !ok {
+				return err
+			}
+			fmt.Println("Post already added")
+		} else {
+			fmt.Printf("Post Added: %s", p.Title)
+		}
 	}
 
 	return nil
